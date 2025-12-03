@@ -10,11 +10,11 @@ class TaskTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
-      body: Row(children: [
-        Text('Buy a house', ), 
-        Spacer(),
+      body: ListTile( 
+        leading: Text('Buy a house', style: TextStyle(fontWeight: FontWeight.bold, fontSize:20)), 
+        trailing:
         Checkbox(value: false, onChanged: null)
-      ],)
+      ,)
     );
   }
 }
