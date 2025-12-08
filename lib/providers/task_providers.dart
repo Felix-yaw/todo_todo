@@ -30,6 +30,15 @@ class TaskProviders extends ChangeNotifier {
     _tasks[taskIndex].subtasks.removeAt(subtaskIndex);
     notifyListeners();
   }
+  void updateSubtask(int taskIndex, int subtaskIndex, String newName){
+    final subtask = _tasks[taskIndex].subtasks[subtaskIndex];
+    _tasks[taskIndex].subtasks[subtaskIndex] = Subtask(
+      name: newName,
+      isDone: subtask.isDone,
+    );
+    notifyListeners();
+
+  }
 
   SubtaskStats getSubtaskStats(int taskIndex) {
     final task = _tasks[taskIndex];

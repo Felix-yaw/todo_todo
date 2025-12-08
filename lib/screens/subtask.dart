@@ -13,6 +13,110 @@ class SubtaskScreen extends StatelessWidget {
     required this.task,
   });
 
+  void _showEditSubtaskDialog(BuildContext context, int subtaskIndex) {
+    final taskData = context.read<TaskProviders>();
+    final subtask = taskData.tasks[taskIndex].subtasks[subtaskIndex];
+    final controller = TextEditingController(text: subtask.name);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Subtask'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: 'Enter subtask name',
+            border: OutlineInputBorder(),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                context.read<TaskProviders>().updateSubtask(
+                      taskIndex,
+                      subtaskIndex,
+                      controller.text.trim(),
+                    );
+                Navigator.pop(context);
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteSubtaskConfirmation(BuildContext context, int subtaskIndex) {
+    final taskData = context.read<TaskProviders>();
+    final subtask = taskData.tasks[taskIndex].subtasks[subtaskIndex];
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Subtask'),
+        content: Text('Are you sure you want to delete "${subtask.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              context.read<TaskProviders>().removeSubtask(taskIndex, subtaskIndex);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+  void _showSubtaskOptions(BuildContext context, int subtaskIndex) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit, color: Colors.blue),
+              title: const Text('Edit Subtask'),
+              onTap: () {
+                Navigator.pop(context);
+                _showEditSubtaskDialog(context, subtaskIndex);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text('Delete Subtask'),
+              onTap: () {
+                Navigator.pop(context);
+                _showDeleteSubtaskConfirmation(context, subtaskIndex);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+ 
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,6 +176,10 @@ class SubtaskScreen extends StatelessWidget {
                             fontSize: 16,
                           ),
                         ),
+                        onTap:(){
+                          _showSubtaskOptions(context, index);
+
+                        }
                       ),
                     );
                   },
@@ -181,141 +289,6 @@ class SubtaskScreen extends StatelessWidget {
   }
 }
 
-void _showAddSubtaskDialog(BuildContext context) {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Subtask'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Enter subtask name',
-            border: OutlineInputBorder(),
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
-                context.read<TaskProviders>().addSubtask(
-                      taskIndex,
-                      controller.text.trim(),
-                    );
-                Navigator.pop(context);
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
-  }
 
-  void _showSubtaskOptions(BuildContext context, int subtaskIndex) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit, color: Colors.blue),
-              title: const Text('Edit Subtask'),
-              onTap: () {
-                Navigator.pop(context);
-                _showEditSubtaskDialog(context, subtaskIndex);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Delete Subtask'),
-              onTap: () {
-                Navigator.pop(context);
-                _showDeleteSubtaskConfirmation(context, subtaskIndex);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  void _showEditSubtaskDialog(BuildContext context, int subtaskIndex) {
-    final taskData = context.read<TaskProviders>();
-    final subtask = taskData.tasks[taskIndex].subtasks[subtaskIndex];
-    final controller = TextEditingController(text: subtask.name);
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Subtask'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Enter subtask name',
-            border: OutlineInputBorder(),
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
-                context.read<TaskProviders>().updateSubtask(
-                      taskIndex,
-                      subtaskIndex,
-                      controller.text.trim(),
-                    );
-                Navigator.pop(context);
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-            child: const Text('Update'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDeleteSubtaskConfirmation(BuildContext context, int subtaskIndex) {
-    final taskData = context.read<TaskProviders>();
-    final subtask = taskData.tasks[taskIndex].subtasks[subtaskIndex];
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Subtask'),
-        content: Text('Are you sure you want to delete "${subtask.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              context.read<TaskProviders>().removeSubtask(taskIndex, subtaskIndex);
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-
+  
