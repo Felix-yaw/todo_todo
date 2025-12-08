@@ -1,6 +1,10 @@
-import 'package:flutter/material.dart';
+
+ 
+ import 'package:flutter/material.dart';
 import 'package:todo_todo/models/task.dart';
 import 'package:todo_todo/screens/subtask.dart';
+import 'package:todo_todo/providers/task_providers.dart';
+import 'package:provider/provider.dart';
 
 class TaskTile extends StatelessWidget {
   final Task task;
@@ -11,6 +15,36 @@ class TaskTile extends StatelessWidget {
     required this.task,
     required this.index,
   });
+
+  // FIXED FUNCTION
+  void _showDeleteConfirmation(BuildContext parentContext) {
+    showDialog(
+      context: parentContext,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Task'),
+        content: Text('Are you sure you want to delete "${task.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // MUST USE parentContext HERE, NOT dialogContext
+              parentContext.read<TaskProviders>().removeTask(index);
+
+              Navigator.pop(dialogContext);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +67,9 @@ class TaskTile extends StatelessWidget {
               ),
             ),
           );
+        },
+        onLongPress: () {
+          _showDeleteConfirmation(context); 
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -93,3 +130,6 @@ class TaskTile extends StatelessWidget {
     );
   }
 }
+
+
+
