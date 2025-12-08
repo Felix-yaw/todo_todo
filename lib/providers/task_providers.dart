@@ -1,27 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:todo_todo/models/task.dart';
 
-
-class TaskProviders extends ChangeNotifier{
+class TaskProviders extends ChangeNotifier {
   final List<Task> _tasks = [];
 
   List<Task> get tasks => List.unmodifiable(_tasks);
 
-  void addTask(String name){
-    _tasks.add(Task(name:name));
+  void addTask(String name) {
+    _tasks.add(Task(name: name));
     notifyListeners();
   }
 
-  void removeTask(int index){
+  void removeTask(int index) {
     _tasks.removeAt(index);
     notifyListeners();
   }
 
-  void  toggleTask(int index){
-        _tasks[index].toggleTask();
+  void addSubtask(int taskIndex, String subtaskName) {
+    _tasks[taskIndex].subtasks.add(Subtask(name: subtaskName));
+    notifyListeners();
   }
 
+  void toggleSubtask(int taskIndex, int subtaskIndex) {
+    _tasks[taskIndex].subtasks[subtaskIndex].toggle();
+    notifyListeners();
+  }
 
+  void removeSubtask(int taskIndex, int subtaskIndex) {
+    _tasks[taskIndex].subtasks.removeAt(subtaskIndex);
+    notifyListeners();
+  }
 
+  SubtaskStats getSubtaskStats(int taskIndex) {
+    final task = _tasks[taskIndex];
+    final total = task.subtasks.length;
+    final completed = task.subtasks.where((st) => st.isDone).length;
+    final remaining = total - completed;
+    
+    return SubtaskStats(
+      total: total,
+      completed: completed,
+      remaining: remaining,
+    );
+  }
+}
 
+class SubtaskStats {
+  final int total;
+  final int completed;
+  final int remaining;
+
+  SubtaskStats({
+    required this.total,
+    required this.completed,
+    required this.remaining,
+  });
 }

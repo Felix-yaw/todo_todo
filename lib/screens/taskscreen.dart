@@ -1,56 +1,87 @@
+// screens/task_screen.dart
 import 'package:flutter/material.dart';
 import 'package:todo_todo/providers/task_providers.dart';
-import 'package:todo_todo/screens/addtask.dart';
 import 'package:todo_todo/widgets/tasktile.dart';
 import 'package:provider/provider.dart';
+
 class TaskScreen extends StatelessWidget {
+  const TaskScreen({super.key});
 
-  final TextEditingController taskController =TextEditingController();
-
-  final int total1;
-   TaskScreen({super.key, required this.total1});
-  
   @override
   Widget build(BuildContext context) {
-    
-    return  Scaffold(
-      backgroundColor: Colors.white,
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-          backgroundColor: Colors.black,
-          title:Row(
-            children: [
-              Center(child: Text('Todo', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-              Spacer(),
-              Text('Total = $total1', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-
-            ],
-          )
+        backgroundColor: Colors.black,
+        title: const Text(
+          'My Tasks',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        body: Consumer<TaskProviders>(
-          builder:(context, taskData, child){
-            return ListView.builder(itemCount: taskData.tasks.length, itemBuilder: (context, index){
-              final task = taskData.tasks[index];
-              return TaskTile(index: index, task: task, );
-            },);
-          }
-        ) ,
-      floatingActionButton: FloatingActionButton(onPressed: () async {
-        // ignore: unused_local_variable
-        final String newTasktitle = await showModalBottomSheet(context: context, builder: (context) => AddTask(controller: taskController));
-        if(newTasktitle != null && newTasktitle.isNotEmpty){
-          context.read<TaskProviders>().addTask(newTasktitle);
-          taskController.clear();
-        }
-
-      }, 
-      backgroundColor: Colors.black,
-      child: Icon(Icons.add, color: Colors.white)
-      
       ),
+      body: Consumer<TaskProviders>(
+        builder: (context, taskData, child) {
+          if (taskData.tasks.isEmpty) {
+            return const Center(
+              child: Text(
+                'No tasks yet. Add one to get started!',
+                style: TextStyle(color: Colors.grey, fontSize: 16),
+              ),
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: taskData.tasks.length,
+            itemBuilder: (context, index) {
+              final task = taskData.tasks[index];
+              return TaskTile(
+                index: index,
+                task: task,
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showAddTaskDialog(context);
+        },
+        backgroundColor: Colors.black,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
 
-     //
-
-    
+  void _showAddTaskDialog(BuildContext context) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add New Task'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: 'Enter task name',
+            border: OutlineInputBorder(),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                context.read<TaskProviders>().addTask(controller.text.trim());
+                Navigator.pop(context);
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+            child: const Text('Add'),
+          ),
+        ],
+      ),
     );
   }
 }
