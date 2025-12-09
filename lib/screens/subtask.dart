@@ -62,7 +62,7 @@ class SubtaskScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Subtask'),
-        content: Text('Are you sure you want to delete "${subtask.name}"?'),
+        content: Text('Are you sure you want to delete this task"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -162,7 +162,7 @@ class SubtaskScreen extends StatelessWidget {
                         leading: Checkbox(
                           value: subtask.isDone,
                           onChanged: (value) {
-                            taskData.toggleSubtask(taskIndex, index);
+                            context.read<TaskProviders>().toggleSubtask(taskIndex, index);
                           },
                           activeColor: Colors.black,
                         ),
@@ -176,10 +176,19 @@ class SubtaskScreen extends StatelessWidget {
                             fontSize: 16,
                           ),
                         ),
-                        onTap:(){
+                        onLongPress:(){
+                          if(subtask.isDone){
+                            return;
+                          }
+                          
+                          
                           _showSubtaskOptions(context, index);
 
-                        }
+                        },
+                       onTap: () {
+  context.read<TaskProviders>().toggleSubtask(taskIndex, index);
+},
+
                       ),
                     );
                   },

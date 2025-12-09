@@ -6,6 +6,8 @@ import 'package:todo_todo/screens/subtask.dart';
 import 'package:todo_todo/providers/task_providers.dart';
 import 'package:provider/provider.dart';
 
+
+
 class TaskTile extends StatelessWidget {
   final Task task;
   final int index;
@@ -15,37 +17,125 @@ class TaskTile extends StatelessWidget {
     required this.task,
     required this.index,
   });
-
-  // FIXED FUNCTION
-  void _showDeleteConfirmation(BuildContext parentContext) {
-    showDialog(
-      context: parentContext,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Task'),
-        content: Text('Are you sure you want to delete "${task.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // MUST USE parentContext HERE, NOT dialogContext
-              parentContext.read<TaskProviders>().removeTask(index);
-
-              Navigator.pop(dialogContext);
+void _showTaskOptions(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) => Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.edit, color: Colors.blue),
+            title: const Text('Edit Task'),
+            onTap: () {
+              Navigator.pop(context); 
+              _showEditTaskDialog(context);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Delete'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.delete, color: Colors.red),
+            title: const Text('Delete Task'),
+            onTap: () {
+              Navigator.pop(context);
+              _showDeleteConfirmation(context);
+            },
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
+
+void _showDeleteConfirmation(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Delete Task'),
+      content: Text('Are you sure you want to delete this task"?'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            // Use dialogContext to read provider safely inside dialog
+            Provider.of<TaskProviders>(dialogContext, listen: false)
+                .removeTask(index);
+
+            // Close the dialog
+            Navigator.of(dialogContext).pop();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+          ),
+          child: const Text('Delete'),
+        ),
+      ],
+    ),
+  );
+}
+
+
+ 
+  void _showEditTaskDialog(BuildContext context) {
+  final controller = TextEditingController(text: task.name);
+
+  showDialog(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Edit Task'),
+      content: TextField(
+        controller: controller,
+        decoration: const InputDecoration(
+          hintText: 'Enter task name',
+          border: OutlineInputBorder(),
+        ),
+        autofocus: true,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final newName = controller.text.trim();
+            if (newName.isEmpty) return;
+
+            try {
+              
+              Provider.of<TaskProviders>(dialogContext, listen: false)
+                  .updateTask(index, newName);
+
+              
+              Navigator.of(dialogContext).pop();
+            } catch (e, st) {
+              
+              debugPrint('updateTask error: $e\n$st');
+              
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Could not update task')),
+              );
+            }
+          },
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+          child: const Text('Update'),
+        ),
+      ],
+    ),
+  );
+}
+
+
+  
+  
   @override
   Widget build(BuildContext context) {
     final progress = task.progress;
@@ -69,7 +159,7 @@ class TaskTile extends StatelessWidget {
           );
         },
         onLongPress: () {
-          _showDeleteConfirmation(context); 
+          _showTaskOptions(context); 
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
