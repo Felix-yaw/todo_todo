@@ -1,16 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:todo_todo/models/task.dart';
+import 'package:todo_todo/services/database_service.dart';
 
 class TaskProviders extends ChangeNotifier {
   final List<Task> _tasks = [];
+  final DatabaseService dbService = DatabaseService.instance;
 
-  List<Task> get tasks => List.unmodifiable(_tasks);
+  TaskProviders(){
+    loadTasks();
+  }
 
-  void addTask(String name) {
-    _tasks.add(Task(name: name));
+
+  Future<void>loadTasks() async {
+    _tasks.clear();
+    final loadedTasks = await dbService.getTasks();
+    _tasks.addAll(loadedTasks);
     notifyListeners();
   }
 
+  List<Task> get tasks => List.unmodifiable(_tasks);
+
+  Future<void>addTask(String name) async {
+    final task = Task(name:name);
+
+    await dbService.insertTask(task);
+    _tasks.add(task);
+    await loadTasks();
+
+  }
   void removeTask(int index) {
     _tasks.removeAt(index);
     notifyListeners();
