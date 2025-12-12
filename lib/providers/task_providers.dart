@@ -6,76 +6,85 @@ class TaskProviders extends ChangeNotifier {
   final List<Task> _tasks = [];
   final DatabaseService dbService = DatabaseService.instance;
 
-  TaskProviders(){
+  TaskProviders() {
     loadTasks();
   }
 
+  List<Task> get tasks => List.unmodifiable(_tasks);
 
-  Future<void>loadTasks() async {
+  // Load all tasks from DB
+  Future<void> loadTasks() async {
     _tasks.clear();
     final loadedTasks = await dbService.getTasks();
     _tasks.addAll(loadedTasks);
     notifyListeners();
   }
 
-  List<Task> get tasks => List.unmodifiable(_tasks);
-
-  Future<void>addTask(String name) async {
-    final task = Task(name:name);
-
+  // Add a new task
+  Future<void> addTask(String name) async {
+    final task = Task(name: name);
     await dbService.insertTask(task);
     _tasks.add(task);
-    await loadTasks();
-
+    notifyListeners();
   }
-  void removeTask(int index) {
+
+  // Remove a task
+  Future<void> removeTask(int index) async {
+    final task = _tasks[index];
+    await dbService.deleteTask(task.id);
     _tasks.removeAt(index);
     notifyListeners();
   }
 
-  void updateTask(int index, String newName) {
-  final oldTask = _tasks[index];
-
-  _tasks[index] = Task(
-    name: newName,
-    subtasks: oldTask.subtasks,
-  );
-
-  notifyListeners();
-}
-
-
-  void addSubtask(int taskIndex, String subtaskName) {
-    _tasks[taskIndex].subtasks.add(Subtask(name: subtaskName));
+  // Update task name
+  Future<void> updateTask(int index, String newName) async {
+    final task = _tasks[index];
+    task.name = newName; // update in memory
+    await dbService.updateTaskName(task.id, newName);
     notifyListeners();
   }
 
-  void toggleSubtask(int taskIndex, int subtaskIndex) {
-  _tasks[taskIndex].subtasks[subtaskIndex].isDone =
-      !_tasks[taskIndex].subtasks[subtaskIndex].isDone;
-  notifyListeners();
-}
-
-  void removeSubtask(int taskIndex, int subtaskIndex) {
-    _tasks[taskIndex].subtasks.removeAt(subtaskIndex);
+  // Add a subtask
+  Future<void> addSubtask(int taskIndex, String subtaskName) async {
+    final task = _tasks[taskIndex];
+    final subtask = Subtask(name: subtaskName, taskId: task.id);
+    await dbService.insertSubtask(subtask, task.id);
+    task.subtasks.add(subtask);
     notifyListeners();
   }
-  void updateSubtask(int taskIndex, int subtaskIndex, String newName){
+
+  // Remove a subtask
+  Future<void> removeSubtask(int taskIndex, int subtaskIndex) async {
+    final task = _tasks[taskIndex];
+    final subtask = task.subtasks[subtaskIndex];
+    await dbService.deleteSubtask(subtask.id);
+    task.subtasks.removeAt(subtaskIndex);
+    notifyListeners();
+  }
+
+  // Toggle subtask completion
+  Future<void> toggleSubtask(int taskIndex, int subtaskIndex) async {
     final subtask = _tasks[taskIndex].subtasks[subtaskIndex];
-    _tasks[taskIndex].subtasks[subtaskIndex] = Subtask(
-      name: newName,
-      isDone: subtask.isDone,
-    );
+    subtask.toggle(); // toggle in memory
+    await dbService.updateSubtask(subtask);
     notifyListeners();
-
   }
 
+  // Update subtask name
+  Future<void> updateSubtask(int taskIndex, int subtaskIndex, String newName) async {
+    final subtask = _tasks[taskIndex].subtasks[subtaskIndex];
+    subtask.name = newName; // update in memory
+    await dbService.updateSubtask(subtask);
+    notifyListeners();
+  }
+
+  // Get stats for a task's subtasks
   SubtaskStats getSubtaskStats(int taskIndex) {
     final task = _tasks[taskIndex];
     final total = task.subtasks.length;
     final completed = task.subtasks.where((st) => st.isDone).length;
     final remaining = total - completed;
-    
+
     return SubtaskStats(
       total: total,
       completed: completed,

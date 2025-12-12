@@ -89,9 +89,9 @@ class TaskScreen extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: ()async {
               if (controller.text.trim().isNotEmpty) {
-                context.read<TaskProviders>().addTask(controller.text.trim());
+                await context.read<TaskProviders>().addTask(controller.text.trim());
                 Navigator.pop(context);
               }
             },
