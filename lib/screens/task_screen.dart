@@ -1,9 +1,10 @@
-
 import 'package:flutter/material.dart';
-import 'package:todo_todo/providers/task_providers.dart';
-import 'package:todo_todo/widgets/tasktile.dart';
 import 'package:provider/provider.dart';
 
+import 'package:todo_todo/providers/task_providers.dart';
+import 'package:todo_todo/widgets/task_tile.dart';
+
+/// Home screen listing every task.
 class TaskScreen extends StatelessWidget {
   const TaskScreen({super.key});
 
@@ -13,21 +14,20 @@ class TaskScreen extends StatelessWidget {
       builder: (context, taskData, child) {
         return Scaffold(
           backgroundColor: Colors.grey[50],
-          
           appBar: AppBar(
             backgroundColor: Colors.black,
             title: Row(
-              children: [
+              children: <Widget>[
                 const Text(
                   'My Tasks',
                   style: TextStyle(
-                    color: Colors.white, 
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(width: 200),
                 Text(
-                  "${taskData.tasks.length}",
+                  '${taskData.tasks.length}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -36,7 +36,6 @@ class TaskScreen extends StatelessWidget {
               ],
             ),
           ),
-
           body: taskData.tasks.isEmpty
               ? const Center(
                   child: Text(
@@ -48,18 +47,14 @@ class TaskScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   itemCount: taskData.tasks.length,
                   itemBuilder: (context, index) {
-                    final task = taskData.tasks[index];
                     return TaskTile(
                       index: index,
-                      task: task,
+                      task: taskData.tasks[index],
                     );
                   },
                 ),
-
           floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              _showAddTaskDialog(context);
-            },
+            onPressed: () => _showAddTaskDialog(context),
             backgroundColor: Colors.black,
             child: const Icon(Icons.add, color: Colors.white),
           ),
@@ -69,9 +64,9 @@ class TaskScreen extends StatelessWidget {
   }
 
   void _showAddTaskDialog(BuildContext context) {
-    final controller = TextEditingController();
+    final TextEditingController controller = TextEditingController();
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Add New Task'),
@@ -83,16 +78,18 @@ class TaskScreen extends StatelessWidget {
           ),
           autofocus: true,
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: ()async {
+            onPressed: () async {
               if (controller.text.trim().isNotEmpty) {
-                await context.read<TaskProviders>().addTask(controller.text.trim());
-                Navigator.pop(context);
+                await context
+                    .read<TaskProviders>()
+                    .addTask(controller.text.trim());
+                if (context.mounted) Navigator.pop(context);
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
